@@ -1,0 +1,12 @@
+{
+  "contract_version": 1,
+  "name": "orders",
+  "primary_key": "order_id",
+  "columns": [
+    {"name": "order_id", "type": "integer"},
+    {"name": "customer_email", "type": "string"},
+    {"name": "quantity", "type": "integer", "min": 1, "max": 1000},
+    {"name": "unit_price", "type": "number", "min": 0},
+    {"name": "coupon_code", "type": "string", "required": false, "max_null_fraction": 1.0}
+  ]
+}

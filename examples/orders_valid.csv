@@ -1,0 +1,6 @@
+order_id,customer_email,quantity,unit_price,coupon_code
+1001,ana@example.com,2,19.99,
+1002,ben@example.com,1,5.00,SAVE10
+1003,cal@example.com,1,12.50,
+1004,dee@example.com,3,8.00,
+1005,eli@example.com,1,4.25,WELCOME
