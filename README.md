@@ -3,8 +3,8 @@
 Check a CSV against an agreed **data contract** before it enters an analysis or pipeline,
 and get a readable explanation of every missing column, invalid value, and duplicate ID.
 
-> **Status:** in development. The contract format and contract loader are done; checking
-> CSV files against a contract is the next milestone. See [`PROGRESS.md`](PROGRESS.md).
+> **Status:** in development. The checks and the command-line tool work; CI and a full demo
+> write-up are next. See [`PROGRESS.md`](PROGRESS.md).
 
 ## Why
 
@@ -23,6 +23,27 @@ source .venv/bin/activate
 python -m pip install -e ".[dev]"
 python -m pytest
 ```
+
+## Usage
+
+```bash
+contract-inspector check examples/orders_invalid.csv --contract examples/orders.contract.json
+```
+
+```
+FAIL: examples/orders_invalid.csv against contract 'orders'
+6 rows checked, 0 skipped, 5 errors, 0 warnings
+
+  error    line 3 [quantity]: '0' is below the minimum of 1
+  error    line 4 [customer_email]: value is null; column allows no nulls (1 of 6 rows null)
+  error    line 5 [order_id]: '1003' duplicates the primary key on line 4
+  error    line 6 [quantity]: 'three' is not an integer
+  error    line 7 [unit_price]: '-2.00' is below the minimum of 0
+```
+
+Add `--report out.json` to save the full JSON report, or `--json` to print it instead of the
+summary. The exit code (0 pass, 1 violations, 2 usage or contract error, 3 unreadable dataset,
+4 report not written) lets scripts and CI act on the result without parsing text.
 
 ## Contract format
 

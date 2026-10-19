@@ -94,14 +94,45 @@ unnamed or duplicate header, an unclosed quote, or a single field over 128 KiB.
   come last. The same input always gives the same findings in the same order.
 - Findings refer to **file line numbers** (the header is line 1).
 
-## Exit codes (implemented in the CLI milestone)
+## JSON report (implemented)
+
+Example: [`examples/orders_invalid.report.json`](../examples/orders_invalid.report.json).
+
+| Key | Meaning |
+|---|---|
+| `report_version` | `1`. Bumped if the report format changes incompatibly. |
+| `contract` | The contract's `name`. |
+| `dataset` | The dataset path as the user gave it. Absolute paths are not added. |
+| `status` | `fail` if there is at least one error, otherwise `pass`. Warnings alone pass. |
+| `summary.rows_checked` | Data rows whose values were checked. |
+| `summary.rows_skipped` | Rows excluded for a wrong field count. |
+| `summary.errors`, `summary.warnings` | Finding counts by severity. |
+| `summary.by_rule` | Finding counts by rule id, sorted by rule id. |
+| `findings[]` | `severity`, `rule`, `line` (`null` for file-wide findings), `column` (`null` if none), `message`. Same order as above. |
+
+The report has no timestamp or machine-specific data, so the same input gives a byte-identical
+file. It is UTF-8 JSON with 2-space indentation and a trailing newline. It is written atomically
+(temporary file in the same directory, then rename), so a crash never leaves a partial report.
+
+## Command line and exit codes (implemented)
+
+```bash
+contract-inspector check DATA.csv --contract CONTRACT.json [--report OUT.json] [--json] [--max-findings N]
+```
+
+`python -m contract_inspector ...` works the same way. The text summary (or, with `--json`, the
+JSON report) goes to stdout. Errors running the tool go to stderr, so stdout stays safe to pipe.
 
 | Code | Meaning |
 |---|---|
-| 0 | Dataset satisfies the contract. |
+| 0 | Dataset satisfies the contract. Warnings are allowed. |
 | 1 | Dataset was read successfully but violates the contract. |
-| 2 | Usage or contract error (bad arguments, invalid contract). |
-| 3 | Dataset could not be read (missing, unreadable, not decodable, no header). |
+| 2 | Usage or contract error: bad arguments, invalid or missing contract, or `--report` pointing at an input file. |
+| 3 | Dataset could not be read (see "Unreadable file" above). Nothing was checked and no report is written. |
+| 4 | Checks ran and the result was printed, but the `--report` file could not be written. |
+
+The contract is loaded before the dataset, so when both are broken the exit code is 2.
+`--report` refuses to overwrite the dataset or contract, including through `./` or symlinks.
 
 ## Acceptance fixture
 

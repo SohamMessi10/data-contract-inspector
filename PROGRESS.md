@@ -29,18 +29,37 @@
   empty line is skipped as blank, so the "exactly at the null limit" test was really testing
   0% nulls. Fixed by writing empty values as `""`; the quirk is documented in the spec.
 
+### Milestone 4: JSON report and terminal summary
+- `inspect()` returns the dataset and sorted findings; `build_report` turns them into a
+  versioned, deterministic JSON report (status, summary counts, findings).
+- `write_report` writes atomically (temporary file + `os.replace`), so a crash keeps the old file.
+- `format_summary` prints a short human-readable summary, truncated after 20 findings.
+- Golden file `examples/orders_invalid.report.json` is compared byte-for-byte in a test.
+- Mutation-checked: non-atomic write, status logic, rule ordering, and non-ASCII output each
+  break a test.
+
+### Milestone 5: Command-line tool
+- `contract-inspector check DATA --contract C [--report OUT] [--json] [--max-findings N]`,
+  also runnable as `python -m contract_inspector`.
+- Exit codes 0 pass, 1 violations, 2 usage/contract, 3 unreadable dataset, 4 report not written.
+- Results on stdout, errors on stderr; `--json` makes stdout pure JSON.
+- Refuses `--report` paths that resolve to an input file, so a typo can't overwrite the data.
+- Tests call `main()` directly, plus one subprocess test that runs the real command.
+
 ## Commands verified
 
 | Where | Python | Command | Result |
 |---|---|---|---|
 | Soham's Mac (conda env `dci`) | 3.13.5 | `python -m pytest` | 30 passed (milestone 1) |
 | Soham's Mac (conda env `dci`) | 3.13.5 | `python -m pytest` | 53 passed (milestone 2) |
-| Claude's Linux workspace | 3.13 | `python -m pytest` | 100 passed (milestone 3) |
+| Soham's Mac (conda env `dci`) | 3.13.5 | `python -m pytest` | 100 passed (milestone 3, pushed `db81338`) |
+| Claude's Linux workspace | 3.13 | `python -m pytest` | 114 passed (milestone 4) |
+| Claude's Linux workspace | 3.13 | `python -m pytest`; each exit path run by hand | 138 passed (milestone 5) |
 
 ## Next
 
-- Milestone 4: machine-readable JSON report of the findings.
-- Then: CLI with exit codes, CI, demo README.
+- Milestone 6: GitHub Actions CI running the tests on every push and pull request.
+- Then: demo README with known limitations, and a license.
 
 ## Concepts to review
 - Why strict config parsing (rejecting unknown keys) catches typos that would silently disable checks.
@@ -54,3 +73,7 @@
 - Why `Decimal(str(0.1))` is exact but `float` and `Decimal(0.1)` are not.
 - Regex `[0-9]` vs `\d` (Unicode digits).
 - Mutation testing: a test only proves something if breaking the code makes it fail.
+- Deterministic output and golden-file tests.
+- Atomic writes: why write-then-rename is safe and writing in place is not.
+- Exit codes and stdout vs stderr as a program's interface to scripts.
+- `[project.scripts]` entry points and `python -m package` (`__main__.py`).
