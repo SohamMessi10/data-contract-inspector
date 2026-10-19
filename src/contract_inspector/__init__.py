@@ -7,6 +7,26 @@ from contract_inspector.contract import (
     load_contract,
     parse_contract,
 )
+from contract_inspector.dataset import (
+    Dataset,
+    DatasetError,
+    Finding,
+    Row,
+    check_columns,
+    load_dataset,
+)
 
-__all__ = ["ColumnRule", "Contract", "ContractError", "load_contract", "parse_contract"]
+__all__ = [
+    "ColumnRule",
+    "Contract",
+    "ContractError",
+    "Dataset",
+    "DatasetError",
+    "Finding",
+    "Row",
+    "check_columns",
+    "load_contract",
+    "load_dataset",
+    "parse_contract",
+]
 __version__ = "0.1.0"

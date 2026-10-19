@@ -49,9 +49,29 @@ The contract is a configuration file, so mistakes in it are reported rather than
 - A primary-key column must be `required` with `max_null_fraction` 0.
 - All problems in a contract are reported together, not one per run.
 
+## How a CSV file is read (implemented)
+
+- The file must be UTF-8. An Excel byte-order mark is removed; other encodings are rejected, not guessed.
+- The first line is the header. Header names must be non-empty and unique, and they are matched
+  to the contract exactly: case-sensitive, with no whitespace trimming. A name that matches only
+  after trimming is reported with a hint instead of being silently fixed.
+- Quoting follows standard CSV rules, so `"a, b"` is one field and a quoted field may span lines.
+  An unclosed quote is an error. Python's default lenient mode would otherwise fold every
+  following line into one field, and those rows would silently disappear.
+- Blank lines are skipped. Line numbers always refer to the physical line in the file where a
+  record starts.
+- A row whose field count differs from the header is reported (`field_count`) and excluded from
+  value checks, because its values cannot be matched to columns reliably.
+- A missing required column is an error (`missing_column`). An extra column not in the contract
+  is a warning (`unexpected_column`).
+- Values are kept as raw text. Type conversion is a separate, explicit step.
+- The whole file is read into memory. Large-file streaming is a stretch goal.
+
+**Unreadable file (exit code 3):** missing, a directory, not UTF-8, empty, blank first line, an
+unnamed or duplicate header, an unclosed quote, or a single field over 128 KiB.
+
 ## How CSV values will be interpreted (implemented in later milestones)
 
-- The first row is the header. Extra columns not in the contract are reported as a warning, not an error.
 - A cell is **null** if it is empty or contains only whitespace.
 - `integer`: optional `-` sign followed by digits only. `1.0`, `1e3`, `" 5"` are invalid, not coerced.
 - `number`: a decimal such as `-2.00` or `19.99`. `NaN`, `inf`, and surrounding whitespace are invalid.
