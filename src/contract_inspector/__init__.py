@@ -15,7 +15,15 @@ from contract_inspector.dataset import (
     check_columns,
     load_dataset,
 )
-from contract_inspector.rules import check_values, inspect_dataset, is_null, parse_value
+from contract_inspector.report import build_report, format_summary, to_json, write_report
+from contract_inspector.rules import (
+    Inspection,
+    check_values,
+    inspect,
+    inspect_dataset,
+    is_null,
+    parse_value,
+)
 
 __all__ = [
     "ColumnRule",
@@ -24,14 +32,20 @@ __all__ = [
     "Dataset",
     "DatasetError",
     "Finding",
+    "Inspection",
     "Row",
+    "build_report",
     "check_columns",
     "check_values",
+    "format_summary",
+    "inspect",
     "inspect_dataset",
     "is_null",
     "load_contract",
     "load_dataset",
     "parse_contract",
     "parse_value",
+    "to_json",
+    "write_report",
 ]
 __version__ = "0.1.0"

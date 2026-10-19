@@ -8,6 +8,7 @@ text it accepts, so nothing is silently coerced: "1.0" is not an integer, and
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
 
@@ -107,12 +108,27 @@ def _null_findings(rule: ColumnRule, null_lines: list[int], total_rows: int) -> 
     ]
 
 
+@dataclass(frozen=True)
+class Inspection:
+    dataset: Dataset
+    findings: tuple[Finding, ...]
+
+
+def inspect(contract: Contract, path: str | Path) -> Inspection:
+    """Run every check on a CSV file. Raises DatasetError if it cannot be read."""
+    dataset, structural = load_dataset(path)
+    return Inspection(dataset=dataset, findings=tuple(_sorted_findings(contract, dataset, structural)))
+
+
 def inspect_dataset(contract: Contract, path: str | Path) -> list[Finding]:
     """Run every check on a CSV file and return findings in a stable order.
 
     Raises DatasetError if the file cannot be read.
     """
-    dataset, structural = load_dataset(path)
+    return list(inspect(contract, path).findings)
+
+
+def _sorted_findings(contract: Contract, dataset: Dataset, structural: list[Finding]) -> list[Finding]:
     findings = structural + check_columns(contract, dataset) + check_values(contract, dataset)
     column_order = {rule.name: i for i, rule in enumerate(contract.columns)}
 

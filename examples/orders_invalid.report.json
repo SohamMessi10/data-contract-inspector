@@ -1,0 +1,55 @@
+{
+  "report_version": 1,
+  "contract": "orders",
+  "dataset": "examples/orders_invalid.csv",
+  "status": "fail",
+  "summary": {
+    "rows_checked": 6,
+    "rows_skipped": 0,
+    "errors": 5,
+    "warnings": 0,
+    "by_rule": {
+      "duplicate_key": 1,
+      "min": 2,
+      "null": 1,
+      "type": 1
+    }
+  },
+  "findings": [
+    {
+      "severity": "error",
+      "rule": "min",
+      "line": 3,
+      "column": "quantity",
+      "message": "'0' is below the minimum of 1"
+    },
+    {
+      "severity": "error",
+      "rule": "null",
+      "line": 4,
+      "column": "customer_email",
+      "message": "value is null; column allows no nulls (1 of 6 rows null)"
+    },
+    {
+      "severity": "error",
+      "rule": "duplicate_key",
+      "line": 5,
+      "column": "order_id",
+      "message": "'1003' duplicates the primary key on line 4"
+    },
+    {
+      "severity": "error",
+      "rule": "type",
+      "line": 6,
+      "column": "quantity",
+      "message": "'three' is not an integer"
+    },
+    {
+      "severity": "error",
+      "rule": "min",
+      "line": 7,
+      "column": "unit_price",
+      "message": "'-2.00' is below the minimum of 0"
+    }
+  ]
+}
