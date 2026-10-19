@@ -1,0 +1,64 @@
+# Run the test suite and an end-to-end check of the command on every push and pull request.
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: # allows a manual run from the Actions tab
+
+# Least privilege: this workflow only needs to read the code.
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the older, now-outdated run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false # report every failing combination, not just the first
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: macos-latest # the developer's own platform
+            python-version: "3.13"
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # no later step needs to push
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Check the installed command end to end
+        shell: bash
+        run: |
+          set -u
+          expect() {
+            local want=$1; shift
+            set +e; "$@" > /dev/null 2>&1; local got=$?; set -e
+            echo "exit $got (expected $want): $*"
+            [ "$got" -eq "$want" ]
+          }
+          C=examples/orders.contract.json
+          expect 0 contract-inspector check examples/orders_valid.csv --contract "$C"
+          expect 1 contract-inspector check examples/orders_invalid.csv --contract "$C"
+          expect 2 contract-inspector check examples/orders_valid.csv --contract examples/orders_valid.csv
+          expect 3 contract-inspector check does-not-exist.csv --contract "$C"
+          contract-inspector check examples/orders_invalid.csv --contract "$C" --report "$RUNNER_TEMP/report.json" || true
+          diff examples/orders_invalid.report.json "$RUNNER_TEMP/report.json" && echo "report matches golden file"

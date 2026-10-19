@@ -1,10 +1,12 @@
 # Data Contract Inspector
 
+[![tests](https://github.com/SohamMessi10/data-contract-inspector/actions/workflows/tests.yml/badge.svg)](https://github.com/SohamMessi10/data-contract-inspector/actions/workflows/tests.yml)
+
 Check a CSV against an agreed **data contract** before it enters an analysis or pipeline,
 and get a readable explanation of every missing column, invalid value, and duplicate ID.
 
-> **Status:** in development. The checks and the command-line tool work; CI and a full demo
-> write-up are next. See [`PROGRESS.md`](PROGRESS.md).
+> **Status:** in development. The checks, the command-line tool, and CI work; a full demo
+> write-up is next. See [`PROGRESS.md`](PROGRESS.md).
 
 ## Why
 
@@ -15,7 +17,7 @@ violations without changing the data.
 
 ## Setup
 
-Requires Python 3.11+.
+Requires Python 3.11+. CI tests Python 3.11–3.14 on Linux and 3.13 on macOS.
 
 ```bash
 python3 -m venv .venv

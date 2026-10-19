@@ -46,6 +46,19 @@
 - Refuses `--report` paths that resolve to an input file, so a typo can't overwrite the data.
 - Tests call `main()` directly, plus one subprocess test that runs the real command.
 
+### Fix: missing report module (`f4e5e72`)
+- The milestone 5 commit was pushed without milestone 4's files, so `main` failed to import
+  `contract_inspector.report`. Fixed with a separate commit adding the 5 missing files.
+- Lesson: run the tests before every commit and stop if they fail. CI now enforces this.
+
+### Milestone 6: Continuous integration
+- `.github/workflows/tests.yml` runs on pushes to `main`, pull requests, and manual dispatch.
+- Matrix: Python 3.11, 3.12, 3.13, 3.14 on Ubuntu, plus 3.13 on macOS.
+- Besides pytest, it runs the installed command and asserts exit codes 0/1/2/3, and diffs a
+  generated report against the golden file.
+- Read-only token permissions, no persisted checkout credentials, cancels outdated runs.
+- Pinned `actions/checkout@v7` and `actions/setup-python@v7` (released July 2026, node24).
+
 ## Commands verified
 
 | Where | Python | Command | Result |
@@ -55,11 +68,13 @@
 | Soham's Mac (conda env `dci`) | 3.13.5 | `python -m pytest` | 100 passed (milestone 3, pushed `db81338`) |
 | Claude's Linux workspace | 3.13 | `python -m pytest` | 114 passed (milestone 4) |
 | Claude's Linux workspace | 3.13 | `python -m pytest`; each exit path run by hand | 138 passed (milestone 5) |
+| Claude's Linux workspace | 3.11, 3.12, 3.14 | `python -m pytest` | 138 passed on each |
+| Claude's Linux workspace | 3.13 | workflow's end-to-end step run locally | passes; fails when exit code 3 is broken |
+| GitHub Actions | 3.11–3.14 | `tests` workflow | not yet run (runs on the next push) |
 
 ## Next
 
-- Milestone 6: GitHub Actions CI running the tests on every push and pull request.
-- Then: demo README with known limitations, and a license.
+- Milestone 7: README demo (broken input, report, fixed input), known limitations, license.
 
 ## Concepts to review
 - Why strict config parsing (rejecting unknown keys) catches typos that would silently disable checks.
@@ -77,3 +92,4 @@
 - Atomic writes: why write-then-rename is safe and writing in place is not.
 - Exit codes and stdout vs stderr as a program's interface to scripts.
 - `[project.scripts]` entry points and `python -m package` (`__main__.py`).
+- CI: workflows, triggers, matrix builds, least-privilege permissions.
