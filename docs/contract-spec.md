@@ -70,13 +70,28 @@ The contract is a configuration file, so mistakes in it are reported rather than
 **Unreadable file (exit code 3):** missing, a directory, not UTF-8, empty, blank first line, an
 unnamed or duplicate header, an unclosed quote, or a single field over 128 KiB.
 
-## How CSV values will be interpreted (implemented in later milestones)
+## How CSV values are checked (implemented)
 
-- A cell is **null** if it is empty or contains only whitespace.
-- `integer`: optional `-` sign followed by digits only. `1.0`, `1e3`, `" 5"` are invalid, not coerced.
-- `number`: a decimal such as `-2.00` or `19.99`. `NaN`, `inf`, and surrounding whitespace are invalid.
+- A cell is **null** if it is empty or contains only whitespace. In a one-column file an empty
+  line is skipped as blank, so an empty value must be written as `""`.
+- `integer`: optional `-` followed by ASCII digits 0-9. Leading zeros are allowed (`007` is 7).
+  `1.0`, `1e3`, `+5`, `1,000`, and `" 5"` are invalid, not coerced.
+- `number`: optional `-`, digits, and an optional decimal part (`19.99`, `-2.00`, `5`).
+  `NaN`, `inf`, `1e3`, `.5`, `5.`, `1_000`, and surrounding whitespace are invalid, even though
+  Python's `float()` accepts most of them. Values are compared as `Decimal`, so bounds are exact.
 - `string`: any non-null text.
-- Range and type checks skip null cells; nulls are governed only by `max_null_fraction`.
+- Bounds are inclusive. Null cells skip type and range checks, and a value with the wrong type is
+  not range-checked.
+- Nulls:
+  - `max_null_fraction` 0: every null cell is reported on its own line (`null`).
+  - Otherwise, if the share of null rows is above the limit, one column-level finding
+    (`null_fraction`) lists the count and the first five lines. Exactly at the limit passes.
+- Primary key: each repeat of an earlier value is reported (`duplicate_key`) and points at the
+  first occurrence. Integer keys compare by value, so `1003` and `01003` are duplicates. String
+  keys are compared exactly, including case.
+- Rows excluded for a wrong field count are not value-checked or counted.
+- Findings are sorted by line, then by contract column order. File-wide findings (no line)
+  come last. The same input always gives the same findings in the same order.
 - Findings refer to **file line numbers** (the header is line 1).
 
 ## Exit codes (implemented in the CLI milestone)
@@ -96,10 +111,12 @@ unnamed or duplicate header, an unclosed quote, or a single field over 128 KiB.
 
 `examples/orders_invalid.csv` must produce **exactly** these five findings:
 
-| Line | Column | Problem |
-|---|---|---|
-| 3 | `quantity` | `0` is below the minimum of 1 |
-| 4 | `customer_email` | null; column allows 0% nulls (1 of 6 rows null) |
-| 5 | `order_id` | `1003` duplicates the primary key on line 4 |
-| 6 | `quantity` | `three` is not an integer |
-| 7 | `unit_price` | `-2.00` is below the minimum of 0 |
+| Line | Column | Rule | Message |
+|---|---|---|---|
+| 3 | `quantity` | `min` | `'0' is below the minimum of 1` |
+| 4 | `customer_email` | `null` | `value is null; column allows no nulls (1 of 6 rows null)` |
+| 5 | `order_id` | `duplicate_key` | `'1003' duplicates the primary key on line 4` |
+| 6 | `quantity` | `type` | `'three' is not an integer` |
+| 7 | `unit_price` | `min` | `'-2.00' is below the minimum of 0` |
+
+This is enforced by `test_invalid_fixture_produces_exactly_the_documented_findings`.

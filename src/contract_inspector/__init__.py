@@ -15,6 +15,7 @@ from contract_inspector.dataset import (
     check_columns,
     load_dataset,
 )
+from contract_inspector.rules import check_values, inspect_dataset, is_null, parse_value
 
 __all__ = [
     "ColumnRule",
@@ -25,8 +26,12 @@ __all__ = [
     "Finding",
     "Row",
     "check_columns",
+    "check_values",
+    "inspect_dataset",
+    "is_null",
     "load_contract",
     "load_dataset",
     "parse_contract",
+    "parse_value",
 ]
 __version__ = "0.1.0"
