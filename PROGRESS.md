@@ -59,6 +59,18 @@
 - Read-only token permissions, no persisted checkout credentials, cancels outdated runs.
 - Pinned `actions/checkout@v7` and `actions/setup-python@v7` (released July 2026, node24).
 
+### Milestone 7: README, demo, and license
+- README rewritten for a first-time reader: the problem (silent coercion, with real Python
+  examples), a broken-to-passing demo, usage, exit codes, checks, architecture, design decisions,
+  testing, bugs found, limitations, and next steps.
+- Every console block, the demo CSV, and the contract in the README were checked against real
+  output and files; every relative link resolves.
+- MIT license added (`LICENSE`, plus `license` in `pyproject.toml`).
+
+**Project status: MVP complete.** All acceptance criteria from the brief are met: the fixture
+produces exactly the known findings, edge cases are handled with clear errors, output is
+deterministic, and there are documented exit codes, CI, a demo, and limitations.
+
 ## Commands verified
 
 | Where | Python | Command | Result |
@@ -70,11 +82,13 @@
 | Claude's Linux workspace | 3.13 | `python -m pytest`; each exit path run by hand | 138 passed (milestone 5) |
 | Claude's Linux workspace | 3.11, 3.12, 3.14 | `python -m pytest` | 138 passed on each |
 | Claude's Linux workspace | 3.13 | workflow's end-to-end step run locally | passes; fails when exit code 3 is broken |
-| GitHub Actions | 3.11–3.14 | `tests` workflow | not yet run (runs on the next push) |
+| GitHub Actions | 3.11–3.14 (Linux), 3.13 (macOS) | `tests` workflow on `20b220e` | passed (21 s) |
 
 ## Next
 
-- Milestone 7: README demo (broken input, report, fixed input), known limitations, license.
+- Optional stretch work, only if useful: schema-drift comparison, more column types, configurable
+  delimiter, memory benchmark before any streaming work.
+- Next project in the brief: SplitLedger.
 
 ## Concepts to review
 - Why strict config parsing (rejecting unknown keys) catches typos that would silently disable checks.
